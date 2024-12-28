@@ -14,10 +14,12 @@ This tool enables running a cluster of dqlite servers and executing queries agai
 ## Development
 
 ### Prerequisites
+
 Ensure you have the following dependencies installed on your system for development:
 
 ```bash
 $ sudo apt-get install libdqlite-dev libraft-dev
+$ go install github.com/go-task/task/v3/cmd/task@latest
 ```
 
 ```bash

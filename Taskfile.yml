@@ -1,0 +1,23 @@
+version: "3"
+
+includes:
+  dev: Taskfile.dev.yml
+  debug: Taskfile.debug.yml
+  deploy: Taskfile.deploy.yml
+
+tasks:
+  default:
+    cmds:
+      - task: dev:default
+
+  dev:
+    cmds:
+      - task: dev:default
+
+  debug:
+    cmds:
+      - task: debug:default
+
+  deploy:
+    cmds:
+      - task: deploy:default
