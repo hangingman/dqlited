@@ -1,0 +1,41 @@
+version: "3"
+
+vars:
+  RELEASE: jammy
+  DOCKER: "docker build -f docker/Dockerfile --build-arg release={{.RELEASE}}"
+  DOCKERHUB_USER: hiroyuking
+  COMPOSE: docker compose --project-directory . -p dqlited -f docker/docker-compose.yml
+  COMPOSER_CLUSTER: "dqlbox1:9181,dqlbox2:9182,dqlbox3:9183"
+
+tasks:
+  logs:
+    cmds:
+      - "{{.COMPOSE}} logs"
+  stats:
+    cmds:
+      - "{{.COMPOSE}} stats"
+  usr1:
+    cmds:
+      - "{{.COMPOSE}} kill -s SIGUSR1 bastion"
+  usr2:
+    cmds:
+      - "{{.COMPOSE}} kill -s SIGUSR2 bastion"
+  ubuntu:
+    cmds:
+      - "{{.DOCKER}} --target base-os -t {{.DOCKERHUB_USER}}/ubuntu-base:{{.RELEASE}} ."
+  ubuntu-dev:
+    desc: builds upon ubuntu-base
+    cmds:
+      - "{{.DOCKER}} --target base-os -t {{.DOCKERHUB_USER}}/ubuntu-dev:{{.RELEASE}} ."
+  dqlited-dev:
+    desc: builds upon ubuntu-dev
+    cmds:
+      - "{{.DOCKER}} --target dqlited-dev -t {{.DOCKERHUB_USER}}/dqlite-dev:{{.RELEASE}} ."
+  dqlited-prod:
+    desc: builds upon ubuntu-dev (for now, will use ubuntu-base once ready)
+    cmds:
+      - "{{.DOCKER}} --target dqlited-prod -t {{.DOCKERHUB_USER}}/dqlite-prod:{{.RELEASE}} ."
+  dqlited-static:
+    desc: builds upon ubuntu-dev (for now, will use ubuntu-base once ready)
+    cmds:
+      - "{{.DOCKER}} -t {{.DOCKERHUB_USER}}/dqlite-prod:{{.RELEASE}} ."

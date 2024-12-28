@@ -8,9 +8,10 @@
 # bionic and others seem to have issues on docker mac (stable)
 ARG release=jammy
 
-FROM ubuntu:${release} as base-os
+FROM ubuntu:${release} AS base-os
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=US/Pacific
 
 RUN echo "using release: ${release}"
 
@@ -31,7 +32,6 @@ RUN apt-get install -y 			\
 
 # tools that are nice to have whilst logged in
 RUN apt-get install -y 	\
-	busybox-extras	\
 	curl		\
 	dnsutils 	\
 	gdb 		\
@@ -53,15 +53,14 @@ RUN apt-get install -y 	\
 	wamerican	\
 	vim
 
-RUN ln -sf /usr/share/zoneinfo/US/Pacific /etc/localtime
+RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime
 
 ######################################################################################
 #
 # create an image for building dqlite from scratch
 # it builds upon the reference dqlite image to allow to stare and compare
 #
-
-FROM base-os as dev-env
+FROM base-os AS dev-env
 
 RUN apt-get update
 
@@ -87,7 +86,6 @@ ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
 RUN echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
 
 # the build area for C libraries
-
 RUN mkdir /opt/build
 WORKDIR /opt/build
 
@@ -104,29 +102,21 @@ RUN go get -u github.com/go-delve/delve/cmd/dlv
 # make gdb happier with Go
 RUN echo "add-auto-load-safe-path /usr/local/go/src/runtime/runtime-gdb.py" >> /root/.gdbinit
 
-# upgrade vim (if we're still on Xenial
-#ADD scripts/build_vim.sh /tmp
-#RUN /tmp/build_vim.sh
-
 # move this up once its working correctly
 RUN git clone https://github.com/fatih/vim-go.git ~/.vim/pack/plugins/start/vim-go
-
-# add the vim-go supporting binaries
-#RUN vim +GoInstallBinaries +qall
 
 # TODO: move this up to base-os
 RUN echo "alias vi='vim'" >> ~/.bash_aliases
 
 # lets use local time for developing
+RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime
 
-RUN ln -sf /usr/share/zoneinfo/US/Pacific /etc/localtime
 ######################################################################################
 #
 # create an image for building dqlite from scratch
 # it builds upon the reference dqlite image to allow to stare and compare
 #
-
-FROM dev-env as dqlited-dev
+FROM dev-env AS dqlited-dev
 
 RUN apt-get update
 
@@ -165,9 +155,9 @@ RUN echo "export PATH=$PWD:\$PATH" >> ~/.bashrc
 # create a production image (but with having nice things for debugging)
 #
 
-#FROM base-os as dqlited-prod
+#FROM base-os AS dqlited-prod
 # whilst testing
-FROM dqlited-dev as dqlited-prod
+FROM dqlited-dev AS dqlited-prod
 
 #RUN scripts/sources.sh .
 

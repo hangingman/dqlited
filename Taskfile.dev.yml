@@ -8,6 +8,7 @@ tasks:
     cmds:
       - echo "VERSION -{{.VERSION}}-"
   fmt:
+    desc: format go files
     cmds:
       - go fmt ./...
   build:

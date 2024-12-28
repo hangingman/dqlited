@@ -28,18 +28,6 @@ hammer:
 
 .PHONY: kill local redo depends rerun triad tz usr1 usr2 stats logs
 
-logs:
-	$(COMPOSE) logs
-
-stats:
-	$(COMPOSE) stats
-
-usr1:
-	$(COMPOSE) kill -s SIGUSR1 bastion
-
-usr2:
-	$(COMPOSE) kill -s SIGUSR2 bastion
-
 redo:	build kill clean start
 
 triad::	kill watch start
@@ -65,25 +53,7 @@ dangle:	dangling
 dangling:
 	@docker rmi -f $(docker images -f "dangling=true" -q)
 
-hey:
-	echo RELEASE: $(RELEASE)
-
 DOCKER=docker build -f docker/Dockerfile --build-arg release=$(RELEASE)
-
-ubuntu:
-	@$(DOCKER) --target base-os  -t paulstuart/ubuntu-base:$(RELEASE) .
-
-ubuntu-dev: # builds upon ubuntu-base
-	@$(DOCKER) --target dev-env   -t paulstuart/ubuntu-dev:$(RELEASE) .
-
-dqlited-dev: # builds upon ubuntu-dev
-	@$(DOCKER) --target dqlited-dev  -t paulstuart/dqlite-dev:$(RELEASE) .
-
-dqlited-prod: # builds upon ubuntu-dev (for now, will use ubuntu-base once ready)
-	@$(DOCKER) --target dqlited-prod  -t paulstuart/dqlite-prod:$(RELEASE) .
-
-dqlited-static: # builds upon ubuntu-dev (for now, will use ubuntu-base once ready)
-	@$(DOCKER) -t paulstuart/dqlite-prod:$(RELEASE) .
 
 docker:	## build a "production" image of dqlited
 	docker build --build-arg release=$(RELEASE) -t $(IMG) .

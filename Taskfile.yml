@@ -4,6 +4,9 @@ includes:
   dev:
     taskfile: Taskfile.dev.yml
     flatten: true
+  docker:
+    taskfile: Taskfile.docker.yml
+    flatten: true
   debug:
     taskfile: Taskfile.debug.yml
     flatten: true

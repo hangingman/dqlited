@@ -1,6 +1,12 @@
 version: "3"
 
+vars:
+  RELEASE: jammy
+  GITHUB_USER: hangingman
+  IMG: "{{.GITHUB_USER}}/dqlited:{{.RELEASE}}"
+
 tasks:
-  bazz:
+  hey:
+    desc: just echo target ubuntu version
     cmds:
-      - echo "Bazz"
+      - "echo RELEASE: {{.RELEASE}}"
