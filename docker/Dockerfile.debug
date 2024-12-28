@@ -2,7 +2,7 @@
 # the base image for working with dqlite 
 # this provides the pre-packaged distribution as a point of reference
 
-ARG release=xenial
+ARG release=jammy
 
 FROM paulstuart/dqlite-dev:${release}
 

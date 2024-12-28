@@ -6,7 +6,7 @@
 #
 
 # bionic and others seem to have issues on docker mac (stable)
-ARG release=xenial
+ARG release=jammy
 
 FROM ubuntu:${release} as base-os
 

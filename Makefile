@@ -1,58 +1,26 @@
-.PHONY: vv base help build static dev run-dev again active start prep bash q demo watch moar ubuntu-dev
+.PHONY: vv base help build static dev run-dev again active start prep bash q demo watch moar ubuntu-dev rebast
 
 VERSION = $(shell date '+%Y%m%d.%H:%M:%S') # version our executable with a timestamp (for now)
-
-# docker mac stable as of 2020/01/07 is kernel 4.9.184, 
-# so let's not use bionic until docker updates (or we move to edge)
-# bionic uses kernel 4.15.0.74.76
-#RELEASE = xenial
-RELEASE = bionic
+RELEASE = jammy
 
 export DQLITED_SHELL = paulstuart/dqlited-alpine-dev:latest
 export DQLITED_IMAGE = paulstuart/dqlited-scratch:latest
 
-IMG     = paulstuart/dqlited:$(RELEASE)
-GIT     = /root/go/src/github.com
-MNT     = $(GIT)/paulstuart/dqlited
+IMG = paulstuart/dqlited:$(RELEASE)
+GIT = /root/go/src/github.com
+MNT = $(GIT)/paulstuart/dqlited
 CMN	= /Users/paul.stuart/CODE/DQLITE
 DQL	= $(CMN)/src/paulstuart/dqlite
 FRK	= $(CMN)/debian/Xenial/FORK
 
-#DQLITED_CLUSTER =? "dqlbox1:9181,dqlbox2:9182,dqlbox3:9183,dqlbox4:9184,dqlbox5:9185"
-#COMPOSER_CLUSTER =? "dqlbox1:9181,dqlbox2:9182,dqlbox3:9183,dqlbox4:9184,dqlbox5:9185"
 COMPOSER_CLUSTER = "dqlbox1:9181,dqlbox2:9182,dqlbox3:9183"
-
-COMPOSE = docker-compose --project-directory . -p dqlited -f docker/docker-compose.yml
-
+COMPOSE = docker compose --project-directory . -p dqlited -f docker/docker-compose.yml
 
 help:	## this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: alpine-image alpine-run dev prod runprod src rebast scratch
-
 rebast:
 	$(COMPOSE) restart bastion
-
-src:
-	docker build -f docker/Dockerfile.src -t paulstuart/dqlite-src .
-
-alpine-image:
-	docker build -f docker/Dockerfile.alpine -t paulstuart/dqlited-alpine --target=prod .
-
-dev:
-	docker build -f docker/Dockerfile.alpine -t paulstuart/dqlited-alpine-dev --target=dev .
-
-prod:
-	docker build -f docker/Dockerfile.alpine -t paulstuart/dqlited-alpine-prod --target=prod .
-
-scratch:
-	docker build -f docker/Dockerfile.alpine -t paulstuart/dqlited-scratch .
-
-alpine-run:
-	docker run -it --rm paulstuart/dqlited-alpine bash
-
-runprod:
-	docker run -it --rm paulstuart/dqlited-alpine-prod bash
 
 vv:
 	@echo "VERSION -$(VERSION)-"
@@ -99,7 +67,6 @@ local:
 demo: kill watch start prep ## demonstrate the cluster bring up and fault tolerance
 	
 # docker build targets
-
 .PHONY: ubuntu debug docker dqlited-dev dqlited-prod dq dtest hey dangling dangle timeout tcp dqlited-static
 
 timeout:
@@ -131,14 +98,6 @@ dqlited-prod: # builds upon ubuntu-dev (for now, will use ubuntu-base once ready
 
 dqlited-static: # builds upon ubuntu-dev (for now, will use ubuntu-base once ready)
 	@$(DOCKER) -t paulstuart/dqlite-prod:$(RELEASE) .
-#debug:
-#	@docker build --no-cache -t paulstuart/dqlite-debug:$(RELEASE) .
-
-#base:
-#	docker build -t paulstuart/dqlite-base:$(RELEASE) -f Dockerfile.base .
-#
-#dev:
-#	docker build -t paulstuart/dqlite-dev:$(RELEASE) -f Dockerfile.dev .
 
 docker:	## build a "production" image of dqlited
 	docker build --build-arg release=$(RELEASE) -t $(IMG) .
@@ -146,7 +105,6 @@ docker:	## build a "production" image of dqlited
 dtest:
 	docker build --build-arg release=$(RELEASE) -t $(IMG) -f Dockerfile.test .
 
-# our docker-compose targets
 .PHONY: down up restart ps top bastion clu bounce status comptest d1 d2 net log
 
 log:
@@ -229,8 +187,6 @@ prep:
 	@scripts/prep.sh
 
 # docker targets
-#
-
 .PHONY: forked try mine run dqx run-ubuntu
 
 try:
@@ -258,7 +214,6 @@ run:
 
 
 DOCKER_CLUSTER = "127.0.0.1:9181,127.0.0.1:9182,127.0.0.1:9183,127.0.0.1:9184,127.0.0.1:9185"
-#DOCKER_CLUSTER = "127.0.0.1:9181,127.0.0.1:9182,127.0.0.1:9183"
 LOCAL_CLUSTER = "@/tmp/dqlited.1.sock,@/tmp/dqlited.2.sock,@/tmp/dqlited.3.sock"
 
 # run docker with my forks mounted over originals
@@ -395,8 +350,6 @@ run-dev:
 # for testing chaings to a forked copy of github.com/canonical/go-dqlite
 #
 MASTER = /root/go/src/github.com/canonical/go-dqlite
-
-#DQL = /Users/paul.stuart/CODE/DQLITE/src/dqlite
 
 forked:
 	@docker run \

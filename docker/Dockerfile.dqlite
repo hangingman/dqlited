@@ -4,7 +4,7 @@
 # it builds upon the reference dqlite image to allow to stare and compare
 #
 
-ARG release=xenial
+ARG release=jammy
 
 FROM paulstuart/ubuntu-dev:${release}
 
