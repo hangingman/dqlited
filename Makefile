@@ -59,6 +59,7 @@ depends:
 redo:	build kill clean start
 
 triad::	kill watch start
+
 rerun:	kill clean watch start prep moar
 
 local:
@@ -157,7 +158,7 @@ clean:
 	rm -rf /tmp/dqlited*
 
 fmt:
-	gofmt -s -w *.go
+	go fmt ./...
 
 goversion:
 	@curl -s -w "\n" https://golang.org/VERSION?m=text
