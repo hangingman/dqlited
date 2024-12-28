@@ -85,9 +85,6 @@ watch:
 moar:
 	@DQLITED_ROLE=voter scripts/start.sh 4 5
 
-q:
-	@./dqlited adhoc "select * from model"
-
 active:
 	@scripts/active.sh
 
@@ -105,11 +102,6 @@ prep:
 
 # docker targets
 .PHONY: forked try mine run dqx run-ubuntu
-
-try:
-	docker run \
-		-it --rm \
-		$(IMG) bash
 
 DEVIMG = paulstuart/dqlite-dev:$(RELEASE)
 

@@ -16,6 +16,6 @@ includes:
 
 tasks:
   help:
-    desc: this help
+    desc: show this help
     cmds:
       - task -a

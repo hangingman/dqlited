@@ -4,11 +4,12 @@
 # it builds upon the reference dqlite image to allow to stare and compare
 #
 
-ARG release=jammy
+ARG RELEASE=jammy
 
-FROM ubuntu:${release}
+FROM ubuntu:${RELEASE}
+ARG RELEASE
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
 
@@ -21,7 +22,7 @@ RUN apt-get install -y 	\
 	curl		\
 	git 		\
 	lsof 		\
-	jq 		\
+	jq 			\
 	dnsutils 	\
 	man 		\
 	man-db		\

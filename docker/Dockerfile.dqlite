@@ -4,11 +4,12 @@
 # it builds upon the reference dqlite image to allow to stare and compare
 #
 
-ARG release=jammy
+ARG RELEASE=jammy
 
-FROM paulstuart/ubuntu-dev:${release}
+FROM paulstuart/ubuntu-dev:${RELEASE}
+ARG RELEASE
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
 

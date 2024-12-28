@@ -10,6 +10,11 @@ tasks:
     desc: just echo target ubuntu version
     cmds:
       - "echo RELEASE: {{.RELEASE}}"
+  try:
+    desc: just try to run "production" image with using "--rm"
+    deps: [docker]
+    cmds:
+      - "docker run -it --rm {{.IMG}} bash"
   docker:
     desc: build a "production" image of dqlited
     cmds:

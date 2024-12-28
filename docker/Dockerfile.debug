@@ -2,11 +2,12 @@
 # the base image for working with dqlite 
 # this provides the pre-packaged distribution as a point of reference
 
-ARG release=jammy
+ARG RELEASE=jammy
 
-FROM paulstuart/dqlite-dev:${release}
+FROM paulstuart/dqlite-dev:${RELEASE}
+ARG RELEASE
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /root/go/src/github.com/paulstuart/dqlited 
 

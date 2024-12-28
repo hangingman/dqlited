@@ -13,22 +13,27 @@ env:
 
 tasks:
   log:
+    desc: docker compose logs
     cmds:
       - task logs
   logs:
+    desc: docker compose logs
     cmds:
       - "{{.COMPOSE}} logs"
   ps:
-    desc: show processes
+    desc: docker compose show processes
     cmds:
       - "{{.COMPOSE}} ps"
   top:
+    desc: docker compose show top
     cmds:
       - "{{.COMPOSE}} top"
   net:
+    desc: docker compose network
     cmds:
       - "{{.COMPOSE}} network"
   stats:
+    desc: docker compose stats
     cmds:
       - "{{.COMPOSE}} stats"
   up:
@@ -43,9 +48,11 @@ tasks:
     desc: cluster restarts everything
     deps: [down, up]
   dangle:
+    desc: delete unnecessary intermediate images
     cmds:
       - task dangling
   dangling:
+    desc: delete unnecessary intermediate images
     cmds:
       - docker rmi -f $(docker images -f "dangling=true" -q)
   usr1:

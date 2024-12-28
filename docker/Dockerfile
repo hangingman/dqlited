@@ -6,14 +6,17 @@
 #
 
 # bionic and others seem to have issues on docker mac (stable)
-ARG release=jammy
+ARG RELEASE=jammy
+ARG GO_VERSION=go1.22.0
 
-FROM ubuntu:${release} AS base-os
+FROM ubuntu:${RELEASE} AS base-os
+ARG RELEASE
+ARG GO_VERSION
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=US/Pacific
 
-RUN echo "using release: ${release}"
+RUN echo "using release: ${RELEASE}"
 
 # Do not exclude man pages & other documentation (as of Bionic)
 RUN rm -f /etc/dpkg/dpkg.cfg.d/excludes
@@ -25,7 +28,7 @@ RUN apt-get install -y apt-utils
 
 # basics for repo mgmt
 RUN apt-get install -y 			\
-	ca-certificates			\
+	ca-certificates				\
 	software-properties-common 	\
 	apt-transport-https &&		\
 	apt-get update
@@ -37,7 +40,7 @@ RUN apt-get install -y 	\
 	gdb 		\
 	git 		\
 	iputils-ping	\
-	jq 		\
+	jq 			\
 	lsof 		\
 	man 		\
 	man-db		\
@@ -79,7 +82,7 @@ RUN apt-get install -y 	\
 
 # set up Go
 RUN cd /usr/local && \
-	curl -skL https://dl.google.com/go/go1.13.5.linux-amd64.tar.gz | tar -xzf -
+	curl -skL https://go.dev/dl/${GO_VERSION}.linux-amd64.tar.gz | tar -xzf -
 
 RUN mkdir -p /root/go/bin /root/go/mod /root/go/pkg /root/go/src
 ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
@@ -95,9 +98,7 @@ RUN printf "/usr/local/lib\ninclude /etc/ld.so.conf.d/*.conf\n" > /etc/ld.so.con
 # host mode of git uses ssh, but we don't want that inside docker container
 RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
 
-RUN go get -u golang.org/x/lint/golint
-
-RUN go get -u github.com/go-delve/delve/cmd/dlv
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 # make gdb happier with Go
 RUN echo "add-auto-load-safe-path /usr/local/go/src/runtime/runtime-gdb.py" >> /root/.gdbinit

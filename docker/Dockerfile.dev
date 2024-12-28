@@ -4,18 +4,21 @@
 # it builds upon the reference dqlite image to allow to stare and compare
 #
 
-ARG release=jammy
+ARG RELEASE=jammy
+ARG GO_VERSION=go1.22.0
 
-FROM paulstuart/ubuntu-base:${release}
+FROM paulstuart/ubuntu-base:${RELEASE}
+ARG RELEASE
+ARG GO_VERSION
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
 
 RUN apt-get install -y 	\
 	autoconf 	\
 	automake 	\
-	gcc		\
+	gcc			\
 	git 		\
 	libncurses-dev	\
 	libreadline-dev	\
@@ -26,7 +29,7 @@ RUN apt-get install -y 	\
 
 # set up Go
 RUN cd /usr/local && \
-	curl -skL https://dl.google.com/go/go1.13.5.linux-amd64.tar.gz | tar -xzf -
+	curl -skL https://dl.google.com/go/${GO_VERSION}.linux-amd64.tar.gz | tar -xzf -
 
 RUN mkdir -p /root/go/bin /root/go/mod /root/go/pkg /root/go/src
 ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
@@ -44,6 +47,5 @@ RUN printf "/usr/local/lib\ninclude /etc/ld.so.conf.d/*.conf\n" > /etc/ld.so.con
 # host mode of git uses ssh, but we don't want that inside docker container
 RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
 
-RUN go get -u golang.org/x/lint/golint
 
 

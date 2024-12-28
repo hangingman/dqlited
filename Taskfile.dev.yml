@@ -25,3 +25,8 @@ tasks:
     desc: build all from source code
     cmds:
       - scripts/build_dqlite.sh all
+  q:
+    desc: query test
+    deps: [build]
+    cmds:
+      - ./dqlited adhoc "select * from model"
