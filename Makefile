@@ -40,12 +40,6 @@ usr1:
 usr2:
 	$(COMPOSE) kill -s SIGUSR2 bastion
 
-tz:
-	ln -sf /usr/share/zoneinfo/US/Pacific /etc/localtime
-
-depends: 
-	/opt/build/scripts/build_dqlite.sh all
-
 redo:	build kill clean start
 
 triad::	kill watch start
@@ -67,6 +61,7 @@ tcp:
 	cat /proc/sys/net/ipv4/tcp_fin_timeout
 
 dangle:	dangling
+
 dangling:
 	@docker rmi -f $(docker images -f "dangling=true" -q)
 
@@ -146,9 +141,6 @@ kill:
 
 clean:
 	rm -rf /tmp/dqlited*
-
-goversion:
-	@curl -s -w "\n" https://golang.org/VERSION?m=text
 
 watch:
 	@scripts/active.sh -w
