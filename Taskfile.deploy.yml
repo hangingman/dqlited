@@ -1,6 +1,6 @@
 version: "3"
 
 tasks:
-  default:
+  bazz:
     cmds:
-      - echo "Available tasks install-deps, lint, test"
+      - echo "Bazz"

@@ -1,6 +1,6 @@
 version: "3"
 
 tasks:
-  default:
+  bar:
     cmds:
-      - echo "Available tasks install-deps, lint, test"
+      - echo "Bar"

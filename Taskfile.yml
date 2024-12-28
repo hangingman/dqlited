@@ -1,23 +1,18 @@
 version: "3"
 
 includes:
-  dev: Taskfile.dev.yml
-  debug: Taskfile.debug.yml
-  deploy: Taskfile.deploy.yml
+  dev:
+    taskfile: Taskfile.dev.yml
+    flatten: true
+  debug:
+    taskfile: Taskfile.debug.yml
+    flatten: true
+  deploy:
+    taskfile: Taskfile.deploy.yml
+    flatten: true
 
 tasks:
-  default:
+  help:
+    desc: this help
     cmds:
-      - task: dev:default
-
-  dev:
-    cmds:
-      - task: dev:default
-
-  debug:
-    cmds:
-      - task: debug:default
-
-  deploy:
-    cmds:
-      - task: deploy:default
+      - task -a

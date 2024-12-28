@@ -1,6 +1,22 @@
 version: "3"
 
+vars:
+  VERSION: $(date '+%Y%m%d.%H:%M:%S')
+
 tasks:
-  default:
+  vv:
     cmds:
-      - echo "Available tasks install-deps, lint, test"
+      - echo "VERSION -{{.VERSION}}-"
+  fmt:
+    cmds:
+      - go fmt ./...
+  build:
+    desc: build the server executable
+    deps: [fmt]
+    cmds:
+      - CGO_LDFLAGS="-L/usr/local/lib -Wl,-rpath=/usr/local/lib" go build -v -tags libsqlite3 -ldflags "-X main.version={{.VERSION}}"
+  static:
+    desc: build a statically linked binary
+    deps: [fmt]
+    cmds:
+      - CGO_LDFLAGS="-L/usr/local/lib -Wl,-lco,-ldqlite,-lm,-lraft,-lsqlite3,-luv" go build -tags "libsqlite3 sqlite_omit_load_extension" -ldflags "-s -w -extldflags \"-static\" -X main.version={{.VERSION}}"

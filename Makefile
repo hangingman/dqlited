@@ -1,6 +1,5 @@
 .PHONY: vv base help build static dev run-dev again active start prep bash q demo watch moar ubuntu-dev rebast
 
-VERSION = $(shell date '+%Y%m%d.%H:%M:%S') # version our executable with a timestamp (for now)
 RELEASE = jammy
 
 export DQLITED_SHELL = paulstuart/dqlited-alpine-dev:latest
@@ -21,15 +20,6 @@ help:	## this help
 
 rebast:
 	$(COMPOSE) restart bastion
-
-vv:
-	@echo "VERSION -$(VERSION)-"
-
-build:	fmt 	## build the server executable
-	CGO_LDFLAGS="-L/usr/local/lib -Wl,-rpath=/usr/local/lib" go build -v -tags libsqlite3 -ldflags '-X main.version=$(VERSION)'
-
-static:	## build a statically linked binary
-	CGO_LDFLAGS="-L/usr/local/lib -Wl,-lco,-ldqlite,-lm,-lraft,-lsqlite3,-luv" go build -tags "libsqlite3 sqlite_omit_load_extension" -ldflags '-s -w -extldflags "-static"  -X main.version=$(VERSION)'
 
 .PHONY: hammer
 
@@ -156,9 +146,6 @@ kill:
 
 clean:
 	rm -rf /tmp/dqlited*
-
-fmt:
-	go fmt ./...
 
 goversion:
 	@curl -s -w "\n" https://golang.org/VERSION?m=text
