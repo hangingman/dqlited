@@ -7,19 +7,54 @@ vars:
   COMPOSE: docker compose --project-directory . -p dqlited -f docker/docker-compose.yml
   COMPOSER_CLUSTER: "dqlbox1:9181,dqlbox2:9182,dqlbox3:9183"
 
+env:
+  DQLITED_SHELL: "{{.DOCKERHUB_USER}}/"
+  DQLITED_IMAGE: "{{.DOCKERHUB_USER}}/dqlited-scratch:latest"
+
 tasks:
+  log:
+    cmds:
+      - task logs
   logs:
     cmds:
       - "{{.COMPOSE}} logs"
+  ps:
+    desc: show processes
+    cmds:
+      - "{{.COMPOSE}} ps"
+  top:
+    cmds:
+      - "{{.COMPOSE}} top"
+  net:
+    cmds:
+      - "{{.COMPOSE}} network"
   stats:
     cmds:
       - "{{.COMPOSE}} stats"
+  up:
+    desc: cluster starts
+    cmds:
+      - "{{.COMPOSE}} up -d"
+  down:
+    desc: cluster stops
+    cmds:
+      - "{{.COMPOSE}} down"
+  down:
+    desc: cluster restarts everything
+    deps: [down, up]
+  dangle:
+    cmds:
+      - task dangling
+  dangling:
+    cmds:
+      - docker rmi -f $(docker images -f "dangling=true" -q)
   usr1:
     cmds:
       - "{{.COMPOSE}} kill -s SIGUSR1 bastion"
   usr2:
     cmds:
       - "{{.COMPOSE}} kill -s SIGUSR2 bastion"
+
   ubuntu:
     cmds:
       - "{{.DOCKER}} --target base-os -t {{.DOCKERHUB_USER}}/ubuntu-base:{{.RELEASE}} ."

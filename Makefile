@@ -48,26 +48,7 @@ timeout:
 tcp:
 	cat /proc/sys/net/ipv4/tcp_fin_timeout
 
-dangle:	dangling
-
-dangling:
-	@docker rmi -f $(docker images -f "dangling=true" -q)
-
-DOCKER=docker build -f docker/Dockerfile --build-arg release=$(RELEASE)
-
-docker:	## build a "production" image of dqlited
-	docker build --build-arg release=$(RELEASE) -t $(IMG) .
-
-dtest:
-	docker build --build-arg release=$(RELEASE) -t $(IMG) -f Dockerfile.test .
-
 .PHONY: down up restart ps top bastion clu bounce status comptest d1 d2 net log
-
-log:
-	@$(COMPOSE) logs
-
-net:
-	@$(COMPOSE) network
 
 comptest:
 	@$(COMPOSE) up -d bastion
@@ -86,20 +67,6 @@ bounce:
 
 clu:
 	@$(COMPOSE) exec bastion ./dqlited cluster -c $$DQLITE_CLUSTER
-
-up:	## cluster starts
-	@$(COMPOSE) up -d
-
-down:	## cluster stops
-	@$(COMPOSE) down
-
-restart: down up ## cluster restarts everything
-
-ps:	## show processes
-	@$(COMPOSE) ps
-
-top:
-	@$(COMPOSE) top
 
 bastion:
 	@$(COMPOSE) exec bastion bash

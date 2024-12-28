@@ -10,8 +10,8 @@ includes:
   debug:
     taskfile: Taskfile.debug.yml
     flatten: true
-  deploy:
-    taskfile: Taskfile.deploy.yml
+  release:
+    taskfile: Taskfile.release.yml
     flatten: true
 
 tasks:

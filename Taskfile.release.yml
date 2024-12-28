@@ -1,0 +1,20 @@
+version: "3"
+
+vars:
+  RELEASE: jammy
+  GITHUB_USER: hangingman
+  IMG: "{{.GITHUB_USER}}/dqlited:{{.RELEASE}}"
+
+tasks:
+  hey:
+    desc: just echo target ubuntu version
+    cmds:
+      - "echo RELEASE: {{.RELEASE}}"
+  docker:
+    desc: build a "production" image of dqlited
+    cmds:
+      - "docker build --build-arg release={{.RELEASE}} -t {{.IMG}} -f docker/Dockerfile ."
+  dtest:
+    desc: build a "production" image of dqlited
+    cmds:
+      - "docker build --build-arg release={{.RELEASE}} -t {{.IMG}} -f docker/Dockerfile.test ."
