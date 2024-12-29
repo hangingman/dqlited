@@ -39,6 +39,9 @@ tasks:
     desc: running muliple servers locally for test purpose
     cmds:
       - scripts/start.sh
+  moar:
+    cmds:
+      - DQLITED_ROLE=voter scripts/start.sh 4 5
   kill:
     cmds:
       - "pkill dqlited || :"
@@ -46,6 +49,14 @@ tasks:
     desc: show dqlited listening ports
     cmds:
       - scripts/active.sh -w
+  active:
+    cmds:
+      - scripts/active.sh
+  triad:
+    cmds:
+      - task kill
+      - task watch
+      - task start
   q:
     desc: query test
     deps: [build]

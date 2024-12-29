@@ -14,7 +14,12 @@ vars:
 
 tasks:
   bastion:
-    deps: [dqlited-prod]
     cmds:
       - task up
       - "{{.COMPOSE}} exec bastion bash"
+  rebast:
+    cmds:
+      - "{{.COMPOSE}} restart bastion"
+  comptest:
+    cmds:
+      - "{{.COMPOSE}} restart bastion"

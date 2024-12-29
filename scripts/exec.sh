@@ -10,7 +10,7 @@ fi
  
 dockerish() {
     # the old way of testing in a single docker container
-    RELEASE=${RELEASE:-xenial}
+    RELEASE=${RELEASE:-jammy}
     MNT=/root/go/src/github.com/paulstuart/dqlited 
     #NAME=paulstuart/dqlited
     NAME=paulstuart/dqlite-dev

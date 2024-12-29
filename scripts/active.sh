@@ -1,9 +1,10 @@
 #!/bin/bash
 set -e
+set -o pipefail
+set -o errtrace
 
 # show dqlited listening ports
 # pass -w as an argument to watch while active
-
 let delay=1
 let total=0
 

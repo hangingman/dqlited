@@ -12,23 +12,8 @@ CMN	= /Users/paul.stuart/CODE/DQLITE
 DQL	= $(CMN)/src/paulstuart/dqlite
 FRK	= $(CMN)/debian/Xenial/FORK
 
-COMPOSER_CLUSTER = "dqlbox1:9181,dqlbox2:9182,dqlbox3:9183"
-COMPOSE = docker compose --project-directory . -p dqlited -f docker/docker-compose.yml
-
-help:	## this help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-
-rebast:
-	$(COMPOSE) restart bastion
-
-.PHONY: hammer
-
 hammer:
 	./scripts/exec.sh dqlited hammer
-
-.PHONY: kill local redo depends rerun triad tz usr1 usr2 stats logs
-
-triad::	kill watch start
 
 rerun:	kill clean watch start prep moar
 
@@ -36,9 +21,6 @@ local:
 	@./local
 
 demo: kill watch start prep ## demonstrate the cluster bring up and fault tolerance
-	
-comptest:
-	@$(COMPOSE) up -d bastion
 
 d1:
 	@$(COMPOSE) exec dqlbox1 bash
@@ -54,14 +36,6 @@ bounce:
 
 clu:
 	@$(COMPOSE) exec bastion ./dqlited cluster -c $$DQLITE_CLUSTER
-
-.phony: goversion fmt clean
-
-moar:
-	@DQLITED_ROLE=voter scripts/start.sh 4 5
-
-active:
-	@scripts/active.sh
 
 bash:
 	@scripts/exec.sh bash
