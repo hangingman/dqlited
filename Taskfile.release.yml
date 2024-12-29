@@ -2,8 +2,8 @@ version: "3"
 
 vars:
   RELEASE: jammy
-  GITHUB_USER: hangingman
-  IMG: "{{.GITHUB_USER}}/dqlited:{{.RELEASE}}"
+  DOCKERHUB_USER: hiroyuking
+  IMG: "{{.DOCKERHUB_USER}}/dqlited:{{.RELEASE}}"
 
 tasks:
   hey:

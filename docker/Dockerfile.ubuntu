@@ -1,9 +1,7 @@
-
 #
 # A miminal but useful setup of ubuntu for building, testing, and hosting
 # it builds upon the reference dqlite image to allow to stare and compare
 #
-
 ARG RELEASE=jammy
 
 FROM ubuntu:${RELEASE}

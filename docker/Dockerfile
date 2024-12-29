@@ -8,10 +8,12 @@
 # bionic and others seem to have issues on docker mac (stable)
 ARG RELEASE=jammy
 ARG GO_VERSION=go1.22.0
+ARG GITHUB_USER=hangingman
 
 FROM ubuntu:${RELEASE} AS base-os
 ARG RELEASE
 ARG GO_VERSION
+ARG GITHUB_USER
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=US/Pacific
@@ -97,7 +99,7 @@ RUN printf "/usr/local/lib\ninclude /etc/ld.so.conf.d/*.conf\n" > /etc/ld.so.con
 
 # host mode of git uses ssh, but we don't want that inside docker container
 RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
-
+RUN go install github.com/go-task/task/v3/cmd/task@latest
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 # make gdb happier with Go
@@ -135,17 +137,13 @@ RUN scripts/sources.sh .
 
 RUN scripts/build_dqlite.sh all
 
-WORKDIR /root/go/src/github.com/paulstuart
-
-#RUN git clone https://github.com/paulstuart/dqlited.git
-
-WORKDIR /root/go/src/github.com/paulstuart/dqlited 
+WORKDIR /root/go/src/github.com/${GITHUB_USER}/dqlited 
 
 COPY . ./
 
 RUN go get -u -v ... || :
 
-RUN make static
+RUN task static
 
 #RUN go clean -i
 
@@ -156,26 +154,26 @@ RUN echo "export PATH=$PWD:\$PATH" >> ~/.bashrc
 # create a production image (but with having nice things for debugging)
 #
 
-#FROM base-os AS dqlited-prod
+# FROM base-os AS dqlited-prod
 # whilst testing
 FROM dqlited-dev AS dqlited-prod
 
 #RUN scripts/sources.sh .
 
-WORKDIR /root/go/src/github.com/paulstuart/dqlited/
+WORKDIR /root/go/src/github.com/${GITHUB_USER}/dqlited/
 
-#TESTING
+# TESTING
 RUN  rm -rf *
 COPY . ./
-#COPY *.go /root/go/src/github.com/paulstuart/dqlited/
+#COPY *.go /root/go/src/github.com/${GITHUB_USER}/dqlited/
 
 COPY . ./
 
-#TESTING
-RUN make static
+# TESTING
+RUN task static
 
 # revert to this after testing
 
-#COPY  --from=dqlited-dev /root/go/src/github.com/paulstuart/dqlited/dqlited /usr/local/bin/
+#COPY  --from=dqlited-dev /root/go/src/github.com/${GITHUB_USER}/dqlited/dqlited /usr/local/bin/
 
 #COPY  --from=dqlited-dev /usr/local/bin/sqlite3 /usr/local/bin/

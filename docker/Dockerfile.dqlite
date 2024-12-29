@@ -1,13 +1,15 @@
-
 #
 # create an image for building dqlite from scratch
 # it builds upon the reference dqlite image to allow to stare and compare
 #
-
 ARG RELEASE=jammy
+ARG GITHUB_USER=hangingman
+ARG DOCKERHUB_USER=hiroyuking
 
-FROM paulstuart/ubuntu-dev:${RELEASE}
+FROM ${DOCKERHUB_USER}/ubuntu-dev:${RELEASE}
 ARG RELEASE
+ARG GITHUB_USER
+ARG DOCKERHUB_USER
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -27,9 +29,10 @@ RUN scripts/sources.sh .
 
 RUN scripts/build_dqlite.sh all
 
-RUN mkdir -p /root/go/src/github.com/paulstuart && \
-    cd /root/go/src/github.com/paulstuart 	&& \
-    git clone https://github.com/paulstuart/dqlited.git
+RUN mkdir -p /root/go/src/github.com/${GITHUB_USER} && \
+    cd /root/go/src/github.com/${GITHUB_USER} 	&& \
+    git clone https://github.com/${GITHUB_USER}/dqlited.git
 
-RUN cd /root/go/src/github.com/paulstuart/dqlited && go get -u -v ./... || :
+RUN cd /root/go/src/github.com/${GITHUB_USER}/dqlited && \
+    go get -u -v ./... || :
 
