@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 bye() { echo >&2 $@; exit 1; }
 

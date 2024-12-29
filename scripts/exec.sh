@@ -1,7 +1,7 @@
 #!/bin/bash
+set -e
 
 # if we're already in docker than lets skip the docker exec
-
 if [[ -f /.dockerenv ]]; then
    echo "running inside docker" >&2
    "$@"

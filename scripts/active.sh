@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # show dqlited listening ports
 # pass -w as an argument to watch while active

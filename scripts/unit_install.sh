@@ -1,7 +1,7 @@
 #!/bin/bash
+set -e
 
 # per https://unit.nginx.org/installation/
-
 curl -sL https://nginx.org/keys/nginx_signing.key | apt-key add -
 
 cat > /etc/apt/sources.list.d/unit.list << EOL

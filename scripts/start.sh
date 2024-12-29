@@ -1,11 +1,11 @@
 #!/bin/bash
-
+set -x
 # this script is intended for use in a development context,
 # for running muliple servers locally for test purposes
 
 # allow core dumps
-ulimit -c unlimited
-echo "core.%e.%p" > /proc/sys/kernel/core_pattern
+# ulimit -c unlimited
+# echo "core.%e.%p" > /proc/sys/kernel/core_pattern
 
 #export GOTRACEBACK=crash
 
