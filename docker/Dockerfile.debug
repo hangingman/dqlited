@@ -19,10 +19,9 @@ RUN echo hey
 COPY dqlited/. /root/go/src/github.com/${GITHUB_USER}/dqlited/
 COPY FORK/go-dqlite/. /root/go/src/github.com/canonical/go-dqlite/
 
-RUN go get -u -v ./... || :
-
-RUN cp Taskfile.*.yml .
-
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
 RUN task static
 
 RUN echo 'export PATH=$PATH:/root/go/src/github.com/${GITHUB_USER}/dqlited/' >> ~/.bashrc

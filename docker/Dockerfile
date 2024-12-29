@@ -136,11 +136,10 @@ RUN /opt/build/scripts/sources.sh .
 RUN /opt/build/scripts/build_dqlite.sh all
 
 
-WORKDIR /root/go/src/github.com/${GITHUB_USER}/dqlited 
-COPY . ./
-
-RUN go get -u -v ... || :
-
+WORKDIR /root/go/src/github.com/${GITHUB_USER}/dqlited
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
 RUN task static
 
 #RUN go clean -i
