@@ -15,18 +15,43 @@ tasks:
     desc: build the server executable
     deps: [fmt]
     cmds:
-      - CGO_LDFLAGS="-L/usr/local/lib -Wl,-rpath=/usr/local/lib" go build -v -tags libsqlite3 -ldflags "-X main.version={{.VERSION}}"
+      - |
+        CGO_CFLAGS="-I/usr/local/include" \
+        CGO_LDFLAGS="-L/usr/local/lib -Wl,-rpath=/usr/local/lib" \
+        go build -v -tags libsqlite3 -ldflags "-X main.version={{.VERSION}}"
+  clean:
+    cmds:
+      - rm -rf /tmp/dqlited*
   static:
     desc: build a statically linked binary
     deps: [fmt]
     cmds:
-      - CGO_LDFLAGS="-L/usr/local/lib -Wl,-lco,-ldqlite,-lm,-lraft,-lsqlite3,-luv" go build -tags "libsqlite3 sqlite_omit_load_extension" -ldflags "-s -w -extldflags \"-static\" -X main.version={{.VERSION}}"
+      - |
+        CGO_CFLAGS="-I/usr/local/include" \
+        CGO_LDFLAGS="-L/usr/local/lib -Wl,-lco,-ldqlite,-lm,-lraft,-lsqlite3,-luv" \
+        go build -tags "libsqlite3 sqlite_omit_load_extension" \
+        -ldflags "-s -w -extldflags \"-static\" -X main.version={{.VERSION}}"
   depends:
     desc: build all from source code
     cmds:
       - scripts/build_dqlite.sh all
+  start:
+    desc: running muliple servers locally for test purpose
+    cmds:
+      - scripts/start.sh > /dev/stdout 2>&1
+  kill:
+    cmds:
+      - "pkill dqlited || :"
+  watch:
+    desc: show dqlited listening ports
+    cmds:
+      - scripts/active.sh -w
   q:
     desc: query test
     deps: [build]
     cmds:
       - ./dqlited adhoc "select * from model"
+  redo:
+    deps: [build, kill, clean]
+    cmds:
+      - task start

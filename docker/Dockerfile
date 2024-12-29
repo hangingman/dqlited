@@ -80,7 +80,8 @@ RUN apt-get install -y 	\
 	libtool 	\
 	make 		\
 	pkg-config 	\
-	tcl-dev
+	tcl-dev \
+	liblz4-dev
 
 # set up Go
 RUN cd /usr/local && \
@@ -123,22 +124,18 @@ FROM dev-env AS dqlited-dev
 
 RUN apt-get update
 
-RUN mkdir -p /opt/build/scripts
-
-ADD scripts/build_dqlite.sh /opt/build/scripts/
-ADD scripts/sources.sh /opt/build/scripts/
-
-WORKDIR /opt/build
-
 # gather all the sources required to build dqlite
 # note that the repos will need to be updated after this image is built
+RUN mkdir -p /opt/build/scripts
+RUN mkdir -p /opt/build/src
+COPY scripts/build_dqlite.sh /opt/build/scripts/
+COPY scripts/sources.sh /opt/build/scripts/
+WORKDIR /opt/build/src
+RUN /opt/build/scripts/sources.sh .
+RUN /opt/build/scripts/build_dqlite.sh all
 
-RUN scripts/sources.sh .
-
-RUN scripts/build_dqlite.sh all
 
 WORKDIR /root/go/src/github.com/${GITHUB_USER}/dqlited 
-
 COPY . ./
 
 RUN go get -u -v ... || :

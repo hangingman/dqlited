@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -e
+set -o pipefail
+set -o errtrace
+
+trap 'echo "Error occurred at line $LINENO. Exiting..."; exit 1' ERR
 
 say() { printf "\n$*\n\n"; }
 
@@ -10,14 +14,6 @@ git pull
 git checkout v1.34.2 # latest version as of now
 sh autogen.sh
 ./configure && make -j && make install
-cd -
-}
-
-
-libco() {
-say "building libco"
-cd libco
-make -j && make install
 cd -
 }
 
@@ -33,11 +29,10 @@ git pull
 	--enable-json1		\
 	--enable-update-limit	\
 	--enable-rtree		\
-	--enable-replication &&	\
+	--enable-replication && \
 	make -j && make install
 cd -
 }
-
 
 raft() {
 say "building raft"
@@ -65,14 +60,15 @@ cd -
 
 cd /opt/build/src
 
+# NOTE: dqlite does not depend on libco anymore
+# https://github.com/canonical/dqlite/pull/267
 while [[ -n $1 ]]; do
     case $1 in 
-	libco)  libco ;;
 	libuv)  libuv ;;
 	raft)   raft ;;
 	sqlite) sqlite ;;
 	dqlite) dqlite ;;
-	all) libuv ; libco ; raft ; sqlite ; dqlite;;
+	all) libuv ; raft ; sqlite ; dqlite;;
     esac
     shift
 done

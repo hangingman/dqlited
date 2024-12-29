@@ -26,7 +26,8 @@ RUN apt-get install -y 	\
 	libtool 	\
 	make 		\
 	pkg-config 	\
-	tcl-dev
+	tcl-dev \
+	liblz4-dev
 
 # set up Go
 RUN cd /usr/local && \
