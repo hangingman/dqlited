@@ -28,7 +28,7 @@ tasks:
     cmds:
       - |
         CGO_CFLAGS="-I/usr/local/include" \
-        CGO_LDFLAGS="-L/usr/local/lib -Wl,-lco,-ldqlite,-lm,-lraft,-lsqlite3,-luv" \
+        CGO_LDFLAGS="-L/usr/local/lib -Wl,-llz4,-ldqlite,-lm,-lraft,-lsqlite3,-luv" \
         go build -tags "libsqlite3 sqlite_omit_load_extension" \
         -ldflags "-s -w -extldflags \"-static\" -X main.version={{.VERSION}}"
   depends:

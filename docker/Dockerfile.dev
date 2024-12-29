@@ -27,7 +27,8 @@ RUN apt-get install -y 	\
 	make 		\
 	pkg-config 	\
 	tcl-dev \
-	liblz4-dev
+	liblz4-dev \
+	libsqlite3-dev
 
 # set up Go
 RUN cd /usr/local && \

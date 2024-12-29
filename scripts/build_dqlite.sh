@@ -17,23 +17,6 @@ sh autogen.sh
 cd -
 }
 
-sqlite() {
-say "building sqlite"
-cd sqlite
-rm -f sqlite3 # force rebuild of binary
-git pull
-./configure \
-	--enable-readline	\
-	--enable-editline	\
-	--enable-fts5		\
-	--enable-json1		\
-	--enable-update-limit	\
-	--enable-rtree		\
-	--enable-replication && \
-	make -j && make install
-cd -
-}
-
 raft() {
 say "building raft"
 cd raft
@@ -61,14 +44,14 @@ cd -
 cd /opt/build/src
 
 # NOTE: dqlite does not depend on libco anymore
+# NOTE: sqlite, we can just install the libsqlite3-dev package from Debian or Ubuntu
 # https://github.com/canonical/dqlite/pull/267
 while [[ -n $1 ]]; do
     case $1 in 
 	libuv)  libuv ;;
 	raft)   raft ;;
-	sqlite) sqlite ;;
 	dqlite) dqlite ;;
-	all) libuv ; raft ; sqlite ; dqlite;;
+	all) libuv ; raft ; dqlite;;
     esac
     shift
 done

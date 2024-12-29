@@ -28,8 +28,6 @@ hammer:
 
 .PHONY: kill local redo depends rerun triad tz usr1 usr2 stats logs
 
-redo:	build kill clean start
-
 triad::	kill watch start
 
 rerun:	kill clean watch start prep moar
@@ -71,16 +69,7 @@ clu:
 bastion:
 	@$(COMPOSE) exec bastion bash
 
-kill:
-	@pkill dqlited || :
-
 .phony: goversion fmt clean
-
-clean:
-	rm -rf /tmp/dqlited*
-
-watch:
-	@scripts/active.sh -w
 
 moar:
 	@DQLITED_ROLE=voter scripts/start.sh 4 5
@@ -90,9 +79,6 @@ active:
 
 bash:
 	@scripts/exec.sh bash
-
-start:
-	@scripts/start.sh
 
 status: ## show cluster status
 	@scripts/exec.sh dqlited status
@@ -138,15 +124,6 @@ mine:
 		${DEVIMG} bash
 
 .PHONY: udev bionic
-
-# temp target for testing canonical/raft on ubuntu bionic
-bionic:
-	docker run \
-		-it --rm \
-		--privileged								\
-		--workdir $(MNT) 							\
-                --mount type=bind,src="$(PWD)",dst=$(MNT) 				\
-		ubuntu:bionic bash
 
 # temp target for testing image
 udev:
