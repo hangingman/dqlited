@@ -1,0 +1,25 @@
+version: "3"
+
+vars:
+  RELEASE: jammy
+  DOCKERHUB_USER: hiroyuking
+  IMG: "{{.DOCKERHUB_USER}}/dqlited:{{.RELEASE}}"
+
+tasks:
+  hey:
+    desc: just echo target ubuntu version
+    cmds:
+      - "echo RELEASE: {{.RELEASE}}"
+  try:
+    desc: just try to run "production" image with using "--rm"
+    deps: [docker]
+    cmds:
+      - "docker run -it --rm {{.IMG}} bash"
+  docker:
+    desc: build a "production" image of dqlited
+    cmds:
+      - "docker build --build-arg release={{.RELEASE}} -t {{.IMG}} -f docker/Dockerfile ."
+  dtest:
+    desc: build a "production" image of dqlited
+    cmds:
+      - "docker build --build-arg release={{.RELEASE}} -t {{.IMG}} -f docker/Dockerfile.test ."

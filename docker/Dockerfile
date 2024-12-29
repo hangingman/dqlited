@@ -6,13 +6,19 @@
 #
 
 # bionic and others seem to have issues on docker mac (stable)
-ARG release=xenial
+ARG RELEASE=jammy
+ARG GO_VERSION=go1.22.0
+ARG GITHUB_USER=hangingman
 
-FROM ubuntu:${release} as base-os
+FROM ubuntu:${RELEASE} AS base-os
+ARG RELEASE
+ARG GO_VERSION
+ARG GITHUB_USER
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=US/Pacific
 
-RUN echo "using release: ${release}"
+RUN echo "using release: ${RELEASE}"
 
 # Do not exclude man pages & other documentation (as of Bionic)
 RUN rm -f /etc/dpkg/dpkg.cfg.d/excludes
@@ -24,20 +30,19 @@ RUN apt-get install -y apt-utils
 
 # basics for repo mgmt
 RUN apt-get install -y 			\
-	ca-certificates			\
+	ca-certificates				\
 	software-properties-common 	\
 	apt-transport-https &&		\
 	apt-get update
 
 # tools that are nice to have whilst logged in
 RUN apt-get install -y 	\
-	busybox-extras	\
 	curl		\
 	dnsutils 	\
 	gdb 		\
 	git 		\
 	iputils-ping	\
-	jq 		\
+	jq 			\
 	lsof 		\
 	man 		\
 	man-db		\
@@ -53,15 +58,14 @@ RUN apt-get install -y 	\
 	wamerican	\
 	vim
 
-RUN ln -sf /usr/share/zoneinfo/US/Pacific /etc/localtime
+RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime
 
 ######################################################################################
 #
 # create an image for building dqlite from scratch
 # it builds upon the reference dqlite image to allow to stare and compare
 #
-
-FROM base-os as dev-env
+FROM base-os AS dev-env
 
 RUN apt-get update
 
@@ -76,18 +80,19 @@ RUN apt-get install -y 	\
 	libtool 	\
 	make 		\
 	pkg-config 	\
-	tcl-dev
+	tcl-dev \
+	liblz4-dev \
+	libsqlite3-dev
 
 # set up Go
 RUN cd /usr/local && \
-	curl -skL https://dl.google.com/go/go1.13.5.linux-amd64.tar.gz | tar -xzf -
+	curl -skL https://go.dev/dl/${GO_VERSION}.linux-amd64.tar.gz | tar -xzf -
 
 RUN mkdir -p /root/go/bin /root/go/mod /root/go/pkg /root/go/src
 ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
 RUN echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
 
 # the build area for C libraries
-
 RUN mkdir /opt/build
 WORKDIR /opt/build
 
@@ -96,65 +101,46 @@ RUN printf "/usr/local/lib\ninclude /etc/ld.so.conf.d/*.conf\n" > /etc/ld.so.con
 
 # host mode of git uses ssh, but we don't want that inside docker container
 RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
-
-RUN go get -u golang.org/x/lint/golint
-
-RUN go get -u github.com/go-delve/delve/cmd/dlv
+RUN go install github.com/go-task/task/v3/cmd/task@latest
+RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 # make gdb happier with Go
 RUN echo "add-auto-load-safe-path /usr/local/go/src/runtime/runtime-gdb.py" >> /root/.gdbinit
 
-# upgrade vim (if we're still on Xenial
-#ADD scripts/build_vim.sh /tmp
-#RUN /tmp/build_vim.sh
-
 # move this up once its working correctly
 RUN git clone https://github.com/fatih/vim-go.git ~/.vim/pack/plugins/start/vim-go
-
-# add the vim-go supporting binaries
-#RUN vim +GoInstallBinaries +qall
 
 # TODO: move this up to base-os
 RUN echo "alias vi='vim'" >> ~/.bash_aliases
 
 # lets use local time for developing
+RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime
 
-RUN ln -sf /usr/share/zoneinfo/US/Pacific /etc/localtime
 ######################################################################################
 #
 # create an image for building dqlite from scratch
 # it builds upon the reference dqlite image to allow to stare and compare
 #
-
-FROM dev-env as dqlited-dev
+FROM dev-env AS dqlited-dev
 
 RUN apt-get update
 
-RUN mkdir -p /opt/build/scripts
-
-ADD scripts/build_dqlite.sh /opt/build/scripts/
-ADD scripts/sources.sh /opt/build/scripts/
-
-WORKDIR /opt/build
-
 # gather all the sources required to build dqlite
 # note that the repos will need to be updated after this image is built
+RUN mkdir -p /opt/build/scripts
+RUN mkdir -p /opt/build/src
+COPY scripts/build_dqlite.sh /opt/build/scripts/
+COPY scripts/sources.sh /opt/build/scripts/
+WORKDIR /opt/build/src
+RUN /opt/build/scripts/sources.sh .
+RUN /opt/build/scripts/build_dqlite.sh all
 
-RUN scripts/sources.sh .
 
-RUN scripts/build_dqlite.sh all
-
-WORKDIR /root/go/src/github.com/paulstuart
-
-#RUN git clone https://github.com/paulstuart/dqlited.git
-
-WORKDIR /root/go/src/github.com/paulstuart/dqlited 
-
-COPY . ./
-
-RUN go get -u -v ... || :
-
-RUN make static
+WORKDIR /root/go/src/github.com/${GITHUB_USER}/dqlited
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN task static
 
 #RUN go clean -i
 
@@ -165,26 +151,26 @@ RUN echo "export PATH=$PWD:\$PATH" >> ~/.bashrc
 # create a production image (but with having nice things for debugging)
 #
 
-#FROM base-os as dqlited-prod
+# FROM base-os AS dqlited-prod
 # whilst testing
-FROM dqlited-dev as dqlited-prod
+FROM dqlited-dev AS dqlited-prod
 
 #RUN scripts/sources.sh .
 
-WORKDIR /root/go/src/github.com/paulstuart/dqlited/
+WORKDIR /root/go/src/github.com/${GITHUB_USER}/dqlited/
 
-#TESTING
+# TESTING
 RUN  rm -rf *
 COPY . ./
-#COPY *.go /root/go/src/github.com/paulstuart/dqlited/
+#COPY *.go /root/go/src/github.com/${GITHUB_USER}/dqlited/
 
 COPY . ./
 
-#TESTING
-RUN make static
+# TESTING
+RUN task static
 
 # revert to this after testing
 
-#COPY  --from=dqlited-dev /root/go/src/github.com/paulstuart/dqlited/dqlited /usr/local/bin/
+#COPY  --from=dqlited-dev /root/go/src/github.com/${GITHUB_USER}/dqlited/dqlited /usr/local/bin/
 
 #COPY  --from=dqlited-dev /usr/local/bin/sqlite3 /usr/local/bin/

@@ -809,10 +809,7 @@ func (dx *DBX) Batch(buffer string) error {
 	return nil
 }
 
-//
-//
 // NEW CODE FOR APP CHANGES IN GO-DQLITE
-//
 //
 // QueryRows returns the rows of a query
 func QueryRows(ctx context.Context, db *sql.DB, query string, args ...interface{}) ([]Rows, error) {

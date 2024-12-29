@@ -1,0 +1,21 @@
+version: "3"
+
+includes:
+  dev:
+    taskfile: Taskfile.dev.yml
+    flatten: true
+  docker:
+    taskfile: Taskfile.docker.yml
+    flatten: true
+  debug:
+    taskfile: Taskfile.debug.yml
+    flatten: true
+  release:
+    taskfile: Taskfile.release.yml
+    flatten: true
+
+tasks:
+  help:
+    desc: show this help
+    cmds:
+      - task -a

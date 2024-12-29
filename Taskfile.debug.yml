@@ -1,0 +1,25 @@
+version: "3"
+
+# テスト用にalpineを使っていたようだが、Dockerfileもないのでdqlite-prodを使う
+# https://github.com/paulstuart/dqlited/commit/35f03984c8dc3bb7560c6441482a7e5211404beb
+env:
+  DQLITED_SHELL: "{{.DOCKERHUB_USER}}/dqlite-prod:{{.RELEASE}}"
+  DQLITED_IMAGE: "{{.DOCKERHUB_USER}}/dqlite-prod:{{.RELEASE}}"
+
+vars:
+  RELEASE: jammy
+  DOCKERHUB_USER: hiroyuking
+  COMPOSE: docker compose --project-directory . -p dqlited -f docker/docker-compose.yml
+  COMPOSER_CLUSTER: "dqlbox1:9181,dqlbox2:9182,dqlbox3:9183"
+
+tasks:
+  bastion:
+    cmds:
+      - task up
+      - "{{.COMPOSE}} exec bastion bash"
+  rebast:
+    cmds:
+      - "{{.COMPOSE}} restart bastion"
+  comptest:
+    cmds:
+      - "{{.COMPOSE}} restart bastion"

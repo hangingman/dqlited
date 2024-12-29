@@ -1,0 +1,68 @@
+version: "3"
+
+vars:
+  VERSION: $(date '+%Y%m%d.%H:%M:%S')
+
+tasks:
+  vv:
+    cmds:
+      - echo "VERSION -{{.VERSION}}-"
+  fmt:
+    desc: format go files
+    cmds:
+      - go fmt ./...
+  build:
+    desc: build the server executable
+    deps: [fmt]
+    cmds:
+      - |
+        CGO_CFLAGS="-I/usr/local/include" \
+        CGO_LDFLAGS="-L/usr/local/lib -Wl,-rpath=/usr/local/lib" \
+        go build -v -tags libsqlite3 -ldflags "-X main.version={{.VERSION}}"
+  clean:
+    cmds:
+      - rm -rf /tmp/dqlited*
+  static:
+    desc: build a statically linked binary
+    deps: [fmt]
+    cmds:
+      - |
+        CGO_CFLAGS="-I/usr/local/include" \
+        CGO_LDFLAGS="-L/usr/local/lib -Wl,-llz4,-ldqlite,-lm,-lraft,-lsqlite3,-luv" \
+        go build -tags "libsqlite3 sqlite_omit_load_extension" \
+        -ldflags "-s -w -extldflags \"-static\" -X main.version={{.VERSION}}"
+  depends:
+    desc: build all from source code
+    cmds:
+      - scripts/build_dqlite.sh all
+  start:
+    desc: running muliple servers locally for test purpose
+    cmds:
+      - scripts/start.sh
+  moar:
+    cmds:
+      - DQLITED_ROLE=voter scripts/start.sh 4 5
+  kill:
+    cmds:
+      - "pkill dqlited || :"
+  watch:
+    desc: show dqlited listening ports
+    cmds:
+      - scripts/active.sh -w
+  active:
+    cmds:
+      - scripts/active.sh
+  triad:
+    cmds:
+      - task kill
+      - task watch
+      - task start
+  q:
+    desc: query test
+    deps: [build]
+    cmds:
+      - ./dqlited adhoc "select * from model"
+  redo:
+    deps: [build, kill, clean]
+    cmds:
+      - task start

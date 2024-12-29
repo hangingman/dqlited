@@ -1,162 +1,26 @@
-.PHONY: vv base help build static dev run-dev again active start prep bash q demo watch moar ubuntu-dev
+.PHONY: vv base help build static dev run-dev again active start prep bash q demo watch moar ubuntu-dev rebast
 
-VERSION = $(shell date '+%Y%m%d.%H:%M:%S') # version our executable with a timestamp (for now)
-
-# docker mac stable as of 2020/01/07 is kernel 4.9.184, 
-# so let's not use bionic until docker updates (or we move to edge)
-# bionic uses kernel 4.15.0.74.76
-#RELEASE = xenial
-RELEASE = bionic
+RELEASE = jammy
 
 export DQLITED_SHELL = paulstuart/dqlited-alpine-dev:latest
 export DQLITED_IMAGE = paulstuart/dqlited-scratch:latest
 
-IMG     = paulstuart/dqlited:$(RELEASE)
-GIT     = /root/go/src/github.com
-MNT     = $(GIT)/paulstuart/dqlited
+IMG = paulstuart/dqlited:$(RELEASE)
+GIT = /root/go/src/github.com
+MNT = $(GIT)/paulstuart/dqlited
 CMN	= /Users/paul.stuart/CODE/DQLITE
 DQL	= $(CMN)/src/paulstuart/dqlite
 FRK	= $(CMN)/debian/Xenial/FORK
 
-#DQLITED_CLUSTER =? "dqlbox1:9181,dqlbox2:9182,dqlbox3:9183,dqlbox4:9184,dqlbox5:9185"
-#COMPOSER_CLUSTER =? "dqlbox1:9181,dqlbox2:9182,dqlbox3:9183,dqlbox4:9184,dqlbox5:9185"
-COMPOSER_CLUSTER = "dqlbox1:9181,dqlbox2:9182,dqlbox3:9183"
-
-COMPOSE = docker-compose --project-directory . -p dqlited -f docker/docker-compose.yml
-
-
-help:	## this help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-
-.PHONY: alpine-image alpine-run dev prod runprod src rebast scratch
-
-rebast:
-	$(COMPOSE) restart bastion
-
-src:
-	docker build -f docker/Dockerfile.src -t paulstuart/dqlite-src .
-
-alpine-image:
-	docker build -f docker/Dockerfile.alpine -t paulstuart/dqlited-alpine --target=prod .
-
-dev:
-	docker build -f docker/Dockerfile.alpine -t paulstuart/dqlited-alpine-dev --target=dev .
-
-prod:
-	docker build -f docker/Dockerfile.alpine -t paulstuart/dqlited-alpine-prod --target=prod .
-
-scratch:
-	docker build -f docker/Dockerfile.alpine -t paulstuart/dqlited-scratch .
-
-alpine-run:
-	docker run -it --rm paulstuart/dqlited-alpine bash
-
-runprod:
-	docker run -it --rm paulstuart/dqlited-alpine-prod bash
-
-vv:
-	@echo "VERSION -$(VERSION)-"
-
-build:	fmt 	## build the server executable
-	CGO_LDFLAGS="-L/usr/local/lib -Wl,-rpath=/usr/local/lib" go build -v -tags libsqlite3 -ldflags '-X main.version=$(VERSION)'
-
-static:	## build a statically linked binary
-	CGO_LDFLAGS="-L/usr/local/lib -Wl,-lco,-ldqlite,-lm,-lraft,-lsqlite3,-luv" go build -tags "libsqlite3 sqlite_omit_load_extension" -ldflags '-s -w -extldflags "-static"  -X main.version=$(VERSION)'
-
-.PHONY: hammer
-
 hammer:
 	./scripts/exec.sh dqlited hammer
 
-.PHONY: kill local redo depends rerun triad tz usr1 usr2 stats logs
-
-logs:
-	$(COMPOSE) logs
-
-stats:
-	$(COMPOSE) stats
-
-usr1:
-	$(COMPOSE) kill -s SIGUSR1 bastion
-
-usr2:
-	$(COMPOSE) kill -s SIGUSR2 bastion
-
-tz:
-	ln -sf /usr/share/zoneinfo/US/Pacific /etc/localtime
-
-depends: 
-	/opt/build/scripts/build_dqlite.sh all
-
-redo:	build kill clean start
-
-triad::	kill watch start
 rerun:	kill clean watch start prep moar
 
 local:
 	@./local
 
 demo: kill watch start prep ## demonstrate the cluster bring up and fault tolerance
-	
-# docker build targets
-
-.PHONY: ubuntu debug docker dqlited-dev dqlited-prod dq dtest hey dangling dangle timeout tcp dqlited-static
-
-timeout:
-	echo 1 > /proc/sys/net/ipv4/tcp_fin_timeout
-
-tcp:
-	cat /proc/sys/net/ipv4/tcp_fin_timeout
-
-dangle:	dangling
-dangling:
-	@docker rmi -f $(docker images -f "dangling=true" -q)
-
-hey:
-	echo RELEASE: $(RELEASE)
-
-DOCKER=docker build -f docker/Dockerfile --build-arg release=$(RELEASE)
-
-ubuntu:
-	@$(DOCKER) --target base-os  -t paulstuart/ubuntu-base:$(RELEASE) .
-
-ubuntu-dev: # builds upon ubuntu-base
-	@$(DOCKER) --target dev-env   -t paulstuart/ubuntu-dev:$(RELEASE) .
-
-dqlited-dev: # builds upon ubuntu-dev
-	@$(DOCKER) --target dqlited-dev  -t paulstuart/dqlite-dev:$(RELEASE) .
-
-dqlited-prod: # builds upon ubuntu-dev (for now, will use ubuntu-base once ready)
-	@$(DOCKER) --target dqlited-prod  -t paulstuart/dqlite-prod:$(RELEASE) .
-
-dqlited-static: # builds upon ubuntu-dev (for now, will use ubuntu-base once ready)
-	@$(DOCKER) -t paulstuart/dqlite-prod:$(RELEASE) .
-#debug:
-#	@docker build --no-cache -t paulstuart/dqlite-debug:$(RELEASE) .
-
-#base:
-#	docker build -t paulstuart/dqlite-base:$(RELEASE) -f Dockerfile.base .
-#
-#dev:
-#	docker build -t paulstuart/dqlite-dev:$(RELEASE) -f Dockerfile.dev .
-
-docker:	## build a "production" image of dqlited
-	docker build --build-arg release=$(RELEASE) -t $(IMG) .
-
-dtest:
-	docker build --build-arg release=$(RELEASE) -t $(IMG) -f Dockerfile.test .
-
-# our docker-compose targets
-.PHONY: down up restart ps top bastion clu bounce status comptest d1 d2 net log
-
-log:
-	@$(COMPOSE) logs
-
-net:
-	@$(COMPOSE) network
-
-comptest:
-	@$(COMPOSE) up -d bastion
 
 d1:
 	@$(COMPOSE) exec dqlbox1 bash
@@ -173,54 +37,8 @@ bounce:
 clu:
 	@$(COMPOSE) exec bastion ./dqlited cluster -c $$DQLITE_CLUSTER
 
-up:	## cluster starts
-	@$(COMPOSE) up -d
-
-down:	## cluster stops
-	@$(COMPOSE) down
-
-restart: down up ## cluster restarts everything
-
-ps:	## show processes
-	@$(COMPOSE) ps
-
-top:
-	@$(COMPOSE) top
-
-bastion:
-	@$(COMPOSE) exec bastion bash
-
-kill:
-	@pkill dqlited || :
-
-.phony: goversion fmt clean
-
-clean:
-	rm -rf /tmp/dqlited*
-
-fmt:
-	gofmt -s -w *.go
-
-goversion:
-	@curl -s -w "\n" https://golang.org/VERSION?m=text
-
-watch:
-	@scripts/active.sh -w
-
-moar:
-	@DQLITED_ROLE=voter scripts/start.sh 4 5
-
-q:
-	@./dqlited adhoc "select * from model"
-
-active:
-	@scripts/active.sh
-
 bash:
 	@scripts/exec.sh bash
-
-start:
-	@scripts/start.sh
 
 status: ## show cluster status
 	@scripts/exec.sh dqlited status
@@ -229,14 +47,7 @@ prep:
 	@scripts/prep.sh
 
 # docker targets
-#
-
 .PHONY: forked try mine run dqx run-ubuntu
-
-try:
-	docker run \
-		-it --rm \
-		$(IMG) bash
 
 DEVIMG = paulstuart/dqlite-dev:$(RELEASE)
 
@@ -258,7 +69,6 @@ run:
 
 
 DOCKER_CLUSTER = "127.0.0.1:9181,127.0.0.1:9182,127.0.0.1:9183,127.0.0.1:9184,127.0.0.1:9185"
-#DOCKER_CLUSTER = "127.0.0.1:9181,127.0.0.1:9182,127.0.0.1:9183"
 LOCAL_CLUSTER = "@/tmp/dqlited.1.sock,@/tmp/dqlited.2.sock,@/tmp/dqlited.3.sock"
 
 # run docker with my forks mounted over originals
@@ -274,15 +84,6 @@ mine:
 		${DEVIMG} bash
 
 .PHONY: udev bionic
-
-# temp target for testing canonical/raft on ubuntu bionic
-bionic:
-	docker run \
-		-it --rm \
-		--privileged								\
-		--workdir $(MNT) 							\
-                --mount type=bind,src="$(PWD)",dst=$(MNT) 				\
-		ubuntu:bionic bash
 
 # temp target for testing image
 udev:
@@ -395,8 +196,6 @@ run-dev:
 # for testing chaings to a forked copy of github.com/canonical/go-dqlite
 #
 MASTER = /root/go/src/github.com/canonical/go-dqlite
-
-#DQL = /Users/paul.stuart/CODE/DQLITE/src/dqlite
 
 forked:
 	@docker run \

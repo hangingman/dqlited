@@ -1,0 +1,85 @@
+version: "3"
+
+# テスト用にalpineを使っていたようだが、Dockerfileもないのでdqlite-prodを使う
+# https://github.com/paulstuart/dqlited/commit/35f03984c8dc3bb7560c6441482a7e5211404beb
+env:
+  DQLITED_SHELL: "{{.DOCKERHUB_USER}}/dqlite-prod:{{.RELEASE}}"
+  DQLITED_IMAGE: "{{.DOCKERHUB_USER}}/dqlite-prod:{{.RELEASE}}"
+
+vars:
+  RELEASE: jammy
+  DOCKER: "docker build -f docker/Dockerfile --build-arg release={{.RELEASE}}"
+  DOCKERHUB_USER: hiroyuking
+  COMPOSE: docker compose --verbose --project-directory . -p dqlited -f docker/docker-compose.yml
+  COMPOSER_CLUSTER: "dqlbox1:9181,dqlbox2:9182,dqlbox3:9183"
+
+tasks:
+  log:
+    desc: docker compose logs
+    cmds:
+      - task logs
+  logs:
+    desc: docker compose logs
+    cmds:
+      - "{{.COMPOSE}} logs"
+  ps:
+    desc: docker compose show processes
+    cmds:
+      - "{{.COMPOSE}} ps"
+  top:
+    desc: docker compose show top
+    cmds:
+      - "{{.COMPOSE}} top"
+  net:
+    desc: docker compose network
+    cmds:
+      - "{{.COMPOSE}} network"
+  stats:
+    desc: docker compose stats
+    cmds:
+      - "{{.COMPOSE}} stats"
+  up:
+    desc: cluster starts
+    cmds:
+      - "{{.COMPOSE}} up -d"
+  down:
+    desc: cluster stops
+    cmds:
+      - "{{.COMPOSE}} down"
+  down:
+    desc: cluster restarts everything
+    deps: [down, up]
+  dangle:
+    desc: delete unnecessary intermediate images
+    cmds:
+      - task dangling
+  dangling:
+    desc: delete unnecessary intermediate images
+    cmds:
+      - docker rmi -f $(docker images -f "dangling=true" -q)
+  usr1:
+    cmds:
+      - "{{.COMPOSE}} kill -s SIGUSR1 bastion"
+  usr2:
+    cmds:
+      - "{{.COMPOSE}} kill -s SIGUSR2 bastion"
+
+  ubuntu:
+    cmds:
+      - "{{.DOCKER}} --target base-os -t {{.DOCKERHUB_USER}}/ubuntu-base:{{.RELEASE}} ."
+  ubuntu-dev:
+    desc: builds upon ubuntu-base
+    cmds:
+      - "{{.DOCKER}} --target base-os -t {{.DOCKERHUB_USER}}/ubuntu-dev:{{.RELEASE}} ."
+  dqlited-dev:
+    desc: builds upon ubuntu-dev
+    cmds:
+      - "{{.DOCKER}} --target dqlited-dev -t {{.DOCKERHUB_USER}}/dqlite-dev:{{.RELEASE}} ."
+  dqlited-prod:
+    desc: builds upon ubuntu-dev (for now, will use ubuntu-base once ready)
+    cmds:
+      - "{{.DOCKER}} --target dqlited-prod -t {{.DOCKERHUB_USER}}/dqlite-prod:{{.RELEASE}} ."
+  dqlited-static:
+    desc: builds upon ubuntu-dev (for now, will use ubuntu-base once ready)
+    cmds:
+      - "{{.DOCKER}} -t {{.DOCKERHUB_USER}}/dqlite-prod:{{.RELEASE}} ."

@@ -203,7 +203,7 @@ func makeHandleExec(ctx context.Context, dq *app.App) http.HandlerFunc {
 	}
 }
 
-//func makeHandleQuery(queryor Queryor) http.HandlerFunc {
+// func makeHandleQuery(queryor Queryor) http.HandlerFunc {
 func makeHandleQuery(ctx context.Context, dq *app.App) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != "GET" && r.Method != "POST" {

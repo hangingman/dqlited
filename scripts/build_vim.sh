@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # because of docker limitations, we're using Ubuntu Xenial,
 # which has an old version of vim in its package repo

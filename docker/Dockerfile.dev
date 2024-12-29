@@ -1,32 +1,38 @@
-
 #
 # create an image for building dqlite from scratch
 # it builds upon the reference dqlite image to allow to stare and compare
 #
 
-ARG release=xenial
+ARG RELEASE=jammy
+ARG GO_VERSION=go1.22.0
+ARG DOCKERHUB_USER=hiroyuking
 
-FROM paulstuart/ubuntu-base:${release}
+FROM ${DOCKERHUB_USER}/ubuntu-base:${RELEASE}
+ARG RELEASE
+ARG GO_VERSION
+ARG DOCKERHUB_USER
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update
 
 RUN apt-get install -y 	\
 	autoconf 	\
 	automake 	\
-	gcc		\
+	gcc			\
 	git 		\
 	libncurses-dev	\
 	libreadline-dev	\
 	libtool 	\
 	make 		\
 	pkg-config 	\
-	tcl-dev
+	tcl-dev \
+	liblz4-dev \
+	libsqlite3-dev
 
 # set up Go
 RUN cd /usr/local && \
-	curl -skL https://dl.google.com/go/go1.13.5.linux-amd64.tar.gz | tar -xzf -
+	curl -skL https://dl.google.com/go/${GO_VERSION}.linux-amd64.tar.gz | tar -xzf -
 
 RUN mkdir -p /root/go/bin /root/go/mod /root/go/pkg /root/go/src
 ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
@@ -34,7 +40,6 @@ RUN echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
 
 
 # our build area
-
 RUN mkdir /opt/build
 WORKDIR /opt/build
 
@@ -44,6 +49,5 @@ RUN printf "/usr/local/lib\ninclude /etc/ld.so.conf.d/*.conf\n" > /etc/ld.so.con
 # host mode of git uses ssh, but we don't want that inside docker container
 RUN git config --global url."https://github.com/".insteadOf "git@github.com:"
 
-RUN go get -u golang.org/x/lint/golint
 
 

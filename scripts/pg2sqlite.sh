@@ -1,10 +1,9 @@
 #!/bin/bash
+set -e
 
 #
 # convert postresql schema to sqlite
 #
-
-
 SELF=$0
 ARGS=$@
 
