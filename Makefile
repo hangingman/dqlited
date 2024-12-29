@@ -37,17 +37,6 @@ local:
 
 demo: kill watch start prep ## demonstrate the cluster bring up and fault tolerance
 	
-# docker build targets
-.PHONY: ubuntu debug docker dqlited-dev dqlited-prod dq dtest hey dangling dangle timeout tcp dqlited-static
-
-timeout:
-	echo 1 > /proc/sys/net/ipv4/tcp_fin_timeout
-
-tcp:
-	cat /proc/sys/net/ipv4/tcp_fin_timeout
-
-.PHONY: down up restart ps top bastion clu bounce status comptest d1 d2 net log
-
 comptest:
 	@$(COMPOSE) up -d bastion
 
@@ -65,9 +54,6 @@ bounce:
 
 clu:
 	@$(COMPOSE) exec bastion ./dqlited cluster -c $$DQLITE_CLUSTER
-
-bastion:
-	@$(COMPOSE) exec bastion bash
 
 .phony: goversion fmt clean
 

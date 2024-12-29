@@ -38,7 +38,7 @@ tasks:
   start:
     desc: running muliple servers locally for test purpose
     cmds:
-      - scripts/start.sh > /dev/stdout 2>&1
+      - scripts/start.sh
   kill:
     cmds:
       - "pkill dqlited || :"

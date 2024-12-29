@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+
 # this script is intended for use in a development context,
 # for running muliple servers locally for test purposes
 
@@ -49,7 +49,7 @@ server_start() {
    rm -rf $DIR/$DQLITED_ID > /dev/null 2>&1
    mkdir -p $DIR/$DQLITED_ID
 
-   echo "$(ts) starting server ${DQLITED_ID}"  							>> /tmp/dqlited-demo${DQLITED_ID}.txt 
+   echo "$(ts) starting server ${DQLITED_ID}" | tee -a /tmp/dqlited-demo${DQLITED_ID}.txt 
 #   while nc -z localhost $PORT; do   
 #	echo "$(ts) waiting for close of port $PORT" >> /tmp/dqlited-demo${DQLITED_ID}.txt
 #   	sleep 1
@@ -58,27 +58,27 @@ server_start() {
    # TODO: use different localhost ports per server
    JOIN=""
    [[ $DQLITE_ID -gt 1 ]] && export DQLITED_CLUSTER=127.0.0.1:9181 else unset DQLITED_CLUSTER
-   $CMD -z debug server --dir=$DIR/$DQLITED_ID --id=${DQLITED_ID} --address=127.0.0.1:918${DQLITED_ID} --port=400${DQLITED_ID} >> /tmp/dqlited-demo${DQLITED_ID}.txt 2>&1 &
+   $CMD -z debug server --dir=$DIR/$DQLITED_ID --id=${DQLITED_ID} --address=127.0.0.1:918${DQLITED_ID} --port=400${DQLITED_ID} | tee -a /tmp/dqlited-demo${DQLITED_ID}.txt 2>&1 &
    echo $! > $PIDS/$DQLITED_ID
    sleep 1 # let it start up before doing anything with it
-   echo "$(ts) node:$DQLITED_ID started with pid:$!" 						>> /tmp/dqlited-demo${DQLITED_ID}.txt
+   echo "$(ts) node:$DQLITED_ID started with pid:$!" | tee -a /tmp/dqlited-demo${DQLITED_ID}.txt
 }
 
 server_stop() {
    DQLITED_ID=$1
    PID=$(cat $PIDS/$DQLITED_ID)
-   echo "$(ts) kill server: $DQLITED_ID with pid: $PID" >> /tmp/dqlited-demo${DQLITED_ID}.txt
+   echo "$(ts) kill server: $DQLITED_ID with pid: $PID" | tee -a /tmp/dqlited-demo${DQLITED_ID}.txt
    kill -HUP $PID && echo "killed pid $PID"
    # wait for process to terminate. TODO: use a timeout?
    tail --pid=$PID -f /dev/null
    PORT=918${DQLITED_ID}
-   echo "$(ts) checking open port: $PORT" >> /tmp/dqlited-demo${DQLITED_ID}.txt
+   echo "$(ts) checking open port: $PORT" | tee -a /tmp/dqlited-demo${DQLITED_ID}.txt
    portwait $PORT
 #   while nc -z localhost $PORT; do   
 #	   echo "$(ts) waiting for close of port $PORT" >> /tmp/dqlited-demo${DQLITED_ID}.txt
 #   sleep 1
 #   done
-   echo "$(ts) cleaning pid file" >> /tmp/dqlited-demo${DQLITED_ID}.txt
+   echo "$(ts) cleaning pid file" | tee -a /tmp/dqlited-demo${DQLITED_ID}.txt
    rm -f $PIDS/$DQLITED_ID
    sleep 1 # still seeing bind errors, so wait a tiny bit more
 }
@@ -87,7 +87,6 @@ server_stop() {
 #
 # 3 nodes is the minimum Raft consensus
 #
-
 default() {
     # start fresh 
     rm -rf $DIR/dqlite*

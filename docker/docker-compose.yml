@@ -19,7 +19,7 @@ services:
     hostname: dqlbox1
     restart: always
     entrypoint:
-      - dqlited
+      - ./dqlited
       - server
       - --id
       - "1"
@@ -40,7 +40,7 @@ services:
     hostname: dqlbox2
     restart: always
     entrypoint:
-      - dqlited
+      - ./dqlited
       - server
       - --id
       - "2"
@@ -63,7 +63,7 @@ services:
     hostname: dqlbox3
     restart: always
     entrypoint:
-      - dqlited
+      - ./dqlited
       - server
       - --id
       - "3"
